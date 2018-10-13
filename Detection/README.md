@@ -1,4 +1,4 @@
-# CNTK Examples: TNC_FRCNN/Detection
+# TNC_FRCNN/Detection
 
 ## Overview
 
