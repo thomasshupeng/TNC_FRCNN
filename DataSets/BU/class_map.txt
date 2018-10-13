@@ -1,0 +1,12 @@
+__background__	0
+Antelope	1
+Chipmunk	2
+Golden_monkey	3
+Long-tailed_Thrush	4
+Marmot_Himalaya	5
+Ochotona_thibetana	6
+Prunella_strophiata	7
+Sciurotamias_davidianus	8
+Serow	9
+Snow_Leopard	10
+Yellow_weasel	11

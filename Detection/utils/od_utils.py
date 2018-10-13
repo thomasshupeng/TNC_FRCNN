@@ -10,7 +10,10 @@ def train_object_detector(cfg):
 
     detector_name = _get_detector_name(cfg)
     eval_model = None
-    print("training {}".format(detector_name))
+    if cfg["CNTK"].MAKE_MODE:
+        print("loading {}".format(detector_name))
+    else:
+        print("training {}".format(detector_name))
     if detector_name == 'FastRCNN':
         from FastRCNN.FastRCNN_train import prepare, train_fast_rcnn
         prepare(cfg, use_arg_parser=False)
