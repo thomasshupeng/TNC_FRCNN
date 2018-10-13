@@ -2,3 +2,6 @@
 *.un~
 *.*~
 __pycache__
+*.model
+*_output
+
