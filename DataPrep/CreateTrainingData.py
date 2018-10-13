@@ -68,7 +68,8 @@ if __name__ == '__main__':
                     test_img_list.append(base_name + '\\testImages\\' + f)
 
     # Creating class_map.txt
-    class_map_file = os.path.join(data_set_path, 'class_map.txt')
+    class_map_file = os.path.realpath(os.path.join(data_set_path, 'class_map.txt'))
+    print("Creating {}".format(class_map_file))
     with open(class_map_file, 'w') as f:
         class_id_map = {}
         for k in class_map:
@@ -82,8 +83,8 @@ if __name__ == '__main__':
     for k in class_map:
         low_case_class_map[k.lower()] = class_map[k]
     # Creating train_img_file.txt and train_roi_file.txt
-    train_img_file = os.path.join(data_set_path, 'train_img_file.txt')
-    train_roi_file = os.path.join(data_set_path, 'train_roi_file.txt')
+    train_img_file = os.path.realpath(os.path.join(data_set_path, 'train_img_file.txt'))
+    train_roi_file = os.path.realpath(os.path.join(data_set_path, 'train_roi_file.txt'))
     print("Creating {}".format(train_img_file))
     print("Creating {}".format(train_roi_file))
     with open(train_img_file, 'w') as tf, open(train_roi_file, 'w') as rf:
@@ -99,8 +100,8 @@ if __name__ == '__main__':
         rf.close()
 
     # Creating test_img_file.txt and test_roi_file.txt
-    test_img_file = os.path.join(data_set_path, 'test_img_file.txt')
-    test_roi_file = os.path.join(data_set_path, 'test_roi_file.txt')
+    test_img_file = os.path.realpath(os.path.join(data_set_path, 'test_img_file.txt'))
+    test_roi_file = os.path.realpath(os.path.join(data_set_path, 'test_roi_file.txt'))
     print("Creating {}".format(test_img_file))
     print("Creating {}".format(test_roi_file))
     with open(test_img_file, 'w') as tf, open(test_roi_file, 'w') as rf:
