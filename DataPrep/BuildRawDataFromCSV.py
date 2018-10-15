@@ -70,15 +70,16 @@ if __name__ == '__main__':
         class_name = species.replace('\n', '', 10).replace(' ', '_', 10)
         print("Processing {}...".format(species))
         species_df = df[df['Name'] == species]
-        class_name = os.path.join(destination_path, class_name)
-        if not os.path.exists(class_name):
-            os.makedirs(class_name)
+        if not os.path.exists(os.path.join(destination_path, class_name)):
+            os.makedirs(os.path.join(destination_path, class_name))
         print("Total images: {:d}".format(species_df.shape[0]))
         for item, row in species_df.iterrows():
             l, location, camera, squence = row['FileName'].split('-')
             src_file = os.path.join(src_path, "L-" + location, "L-" + location + "-" + camera, row['FileName'] + '.JPG')
             if create_location_sub_folder:
-                dest_folder = os.path.join(destination_path, class_name, "L-" + location + "-" + camera)
+                dest_folder = os.path.join( destination_path, class_name, "L-" + location + "-" + camera)
+                if not os.path.exists(dest_folder):
+                    os.makedirs(dest_folder)
             else:
                 dest_folder = os.path.join(destination_path, class_name)
             dest_file = os.path.join(dest_folder, row['FileName'] + '.JPG')
