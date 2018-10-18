@@ -91,13 +91,13 @@ if __name__ == '__main__':
             shutil.copyfile(src_file, dest_file)
             # create .bboxes.labels.tsv file
             label_tsv_file = row['FileName'] + '.bboxes.labels.tsv'
-            with open(os.path.join(dest_folder, label_tsv_file), 'w', encoding='utf-8') as f:
+            with open(os.path.join(dest_folder, label_tsv_file), 'a', encoding='utf-8') as f:
                 line = class_name + '\n'
                 f.write(line)
                 f.flush()
             # create .bboxes.tsv file
             tsv_file = row['FileName'] + '.bboxes.tsv'
-            with open(os.path.join(dest_folder, tsv_file), 'w') as f:
+            with open(os.path.join(dest_folder, tsv_file), 'a') as f:
                 line = "{top_x:d}\t{top_y:d}\t{bot_x:d}\t{bot_y:d}\n"
                 top_x, top_y = transform(row['TopX'], row['TopY'], row['Width'], row['Height'])
                 bot_x, bot_y = transform(row['BottomX'], row['BottomY'], row['Width'], row['Height'])
