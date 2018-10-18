@@ -78,7 +78,7 @@ def create_vott_json_annotation(parent_path, class_name, overwrite=False):
                     'y1': annotation[i][1],
                     'x2': annotation[i][2],
                     'y2': annotation[i][3],
-                    'name': int(annotation[i][4]),
+                    'name': int(i+1),
                     'width': train_img_width,
                     'height': train_img_height,
                     'type': 'Rectangle',
