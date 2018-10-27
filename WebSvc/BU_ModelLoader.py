@@ -62,7 +62,7 @@ class FRCNN_Model:
         if len(fg) == 0:
             print("Nothing found in current image.")
             predictions.append({"TagId": 0, "Tag": 'Empty', "Probability": 1.0,
-                                "Region": {"Left": 0, "Top": 0, "Width": 0, "Height": 0}})
+                                "Region": {"Left": 0.0, "Top": 0.0, "Width": 0.0, "Height": 0.0}})
         else:
             for i in fg:
                 print("{:<12} (label: {:<2}), score: {:.3f}, box: {}".format(
@@ -71,6 +71,8 @@ class FRCNN_Model:
                 predictions.append({"TagId": np.asscalar(labels[i]),
                                     "Tag": self.cfg["DATA"].CLASSES[labels[i]],
                                     "Probability": np.asscalar(scores[i]),
-                                    "Region": {"Left": left, "Top": top,
-                                               "Width": right - left, "Height": bottom - top}})
+                                    "Region": {"Left": float(left / _image_width),
+                                               "Top": float(top / _image_height),
+                                               "Width": float((right - left) / _image_width),
+                                               "Height": float((bottom - top) / _image_height)}})
         return predictions
