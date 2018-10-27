@@ -1,0 +1,15 @@
+__background__	0
+Anthus_roseatus	1
+Black_bear	2
+Chipmunk	3
+Garrulax_affinis	4
+Golden_monkey	5
+Long-tailed_Thrush	6
+Marmot_Himalaya	7
+Naemorhedus_caudatus	8
+Panda	9
+Prunella_strophiata	10
+Red_fox	11
+Serow	12
+Snow_Leopard	13
+Takin	14
