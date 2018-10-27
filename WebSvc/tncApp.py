@@ -47,8 +47,9 @@ MODEL_NAME = '14CFRCNNAlexNet'
 service_start_time = datetime.datetime.now().isoformat()
 
 # Clean up temp image folder
-temp_folder = os.path.join(os.getcwd(), 'temp')
+temp_folder = os.path.realpath(os.path.join(os.getcwd(), 'temp'))
 if os.path.exists(temp_folder):
+    print("Removing temp folder: {}".format(temp_folder))
     shutil.rmtree(temp_folder)
     os.makedirs(temp_folder)
 
@@ -200,7 +201,7 @@ if __name__ == '__main__':
         PORT = int(os.environ.get('SERVER_PORT', '5555'))
     except ValueError:
         PORT = 5555
-    app.run(HOST, PORT, ssl_context='adhoc')
+    app.run(HOST, PORT)
 
 '''
     if USING_HTTPS:
