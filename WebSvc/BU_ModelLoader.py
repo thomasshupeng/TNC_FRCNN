@@ -60,7 +60,7 @@ class FRCNN_Model:
         predictions = []
         if len(fg) == 0:
             print("Nothing found in current image.")
-            predictions.append({"TagId": 0, "Tag": 'Empty', "Probability": 1.0})
+            predictions.append({"TagId": 0, "Tag": 'Empty', "Probability": 1.0, "BBox": [0, 0, 0, 0]})
         else:
             for i in fg:
                 print("{:<12} (label: {:<2}), score: {:.3f}, box: {}".format(
