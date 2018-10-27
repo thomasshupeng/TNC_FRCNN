@@ -19,6 +19,7 @@ _image_width = 682
 
 cntk.device.try_set_default_device(cntk.device.cpu())
 
+
 class FRCNN_Model:
     def __init__(self, model_type):
         # super().__init__()
@@ -60,13 +61,16 @@ class FRCNN_Model:
         predictions = []
         if len(fg) == 0:
             print("Nothing found in current image.")
-            predictions.append({"TagId": 0, "Tag": 'Empty', "Probability": 1.0, "BBox": [0, 0, 0, 0]})
+            predictions.append({"TagId": 0, "Tag": 'Empty', "Probability": 1.0,
+                                "Region": {"Left": 0, "Top": 0, "Width": 0, "Height": 0}})
         else:
             for i in fg:
                 print("{:<12} (label: {:<2}), score: {:.3f}, box: {}".format(
                     self.cfg["DATA"].CLASSES[labels[i]], labels[i], scores[i], [int(v) for v in bboxes[i]]))
+                left, top, right, bottom = [int(v) for v in bboxes[i]]
                 predictions.append({"TagId": np.asscalar(labels[i]),
                                     "Tag": self.cfg["DATA"].CLASSES[labels[i]],
                                     "Probability": np.asscalar(scores[i]),
-                                    "BBox": [int(v) for v in bboxes[i]]})
+                                    "Region": {"Left": left, "Top": top,
+                                               "Width": right - left, "Height": bottom - top}})
         return predictions
