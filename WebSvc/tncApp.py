@@ -1,33 +1,39 @@
 """
-File Name: TNC_RestSvc.py
+File Name: tncApp.py
 v 1.0
 
 This program provides the RESTful API for TNC project
 
-6/30/2018
+10/27/2018
 Shu Peng
 """
+
 from flask import Flask, jsonify, request
 import os
+# os.environ['PATH'] = r'D:\home\python364x64;D:\home\python364x64\Lib\site-packages\cntk;' + os.environ['PATH']    
 import requests
 import datetime
 import shutil
 import tempfile
 import BU_ModelLoader
+import socket
 
-'''
-1.	PredictImageUrl
-https://southcentralus.dev.cognitive.microsoft.com/docs/services/57982f59b5964e36841e22dfbfe78fc1/operations/5a3044f608fa5e06b890f163
-                
-This one is predicting image by a given a url, which is very similar to what you have with some changes:
-a.	Instead pass pic URL as url parameter, it passes URL in http body, which doesn’t need any encoding.  
-b.	We can make projectid, iterationid, applicationid all as optional, those id can be useful for different 
-projects(云南老君山，北大生命科学院， etc.)
+USING_HTTPS = True
+DEBUG_MODE = False
 
-2.	PredictImage
-https://southcentralus.dev.cognitive.microsoft.com/docs/services/57982f59b5964e36841e22dfbfe78fc1/operations/5a3044f608fa5e06b890f164
+PROJECT_NAME = 'BU'
 
-'''
+# This is a trick to get IP address for current server/machine
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(("8.8.8.8", 80))
+IPAddr= s.getsockname()[0]
+s.close()
+
+HOST_NAME = IPAddr
+PORT_NUMBER = 8080
+if USING_HTTPS:
+    PORT_NUMBER = 443
+
 
 project_name_to_id = {'TNC': '11111111',
                       'BU': '22222222',
@@ -36,7 +42,9 @@ project_name_to_id = {'TNC': '11111111',
 SERVICE_NAME = 'tncapi'
 API_VERSION = 'v1.0'
 END_POINT_NAME = 'Prediction'
-MODEL_NAME = '21CResNet18'
+MODEL_NAME = '14CFRCNNAlexNet'
+
+service_start_time = datetime.datetime.now().isoformat()
 
 # Clean up temp image folder
 temp_folder = os.path.join(os.getcwd(), 'temp')
@@ -44,20 +52,26 @@ if os.path.exists(temp_folder):
     shutil.rmtree(temp_folder)
     os.makedirs(temp_folder)
 
-model = BU_ModelLoader.FRCNN_Model('14CFRCNNAlexNet')
+model = BU_ModelLoader.FRCNN_Model(MODEL_NAME)
 model.load()
 
 app = Flask(__name__)
-app.config["DEBUG"] = True
+app.config["DEBUG"] = DEBUG_MODE
+
 
 # 1.	PredictImageUrl
 # https://southcentralus.api.cognitive.microsoft.com/customvision/v1.1/Prediction/{projectId}/url[?iterationId][&application]
 predict_image_url_endpoint = "/" + SERVICE_NAME + \
                              "/" + API_VERSION + \
                              "/" + END_POINT_NAME + \
-                             "/" + project_name_to_id['BU'] + \
+                             "/" + project_name_to_id[PROJECT_NAME] + \
                              "/url"
-print("PredictImageUrl API = ", predict_image_url_endpoint)
+
+if USING_HTTPS:
+    full_predict_image_url_endpoint = 'https://' + IPAddr + predict_image_url_endpoint
+else:
+    full_predict_image_url_endpoint = 'http://' + IPAddr + ":" + str(PORT_NUMBER) + predict_image_url_endpoint
+print("Full PredictImageUrl API = ", full_predict_image_url_endpoint)
 
 
 @app.route(predict_image_url_endpoint, methods=['POST'])
@@ -92,18 +106,17 @@ def post_prediction_img_url():
         with open(img_path_file, 'wb') as f:
             f.write(r.content)
     else:
-        return jsonify({"Url": img_url, "Code": r.status_code, "Error": r.reason})
+        return jsonify({"Error": r.reason, "Url": img_url, "Code": r.status_code})
 
     if not os.path.exists(img_path_file):
-        res_error = {"Url": img_url, "Error": "Can not open image file."}
-        return jsonify(res_error)
+        return jsonify({"Error": "Couldn't open the image file", "File": img_path_file})
 
     predictions = model.predict(img_path_file)
     os.remove(img_path_file)
 
     res_prediction_img_url = {
         "Id": "string",
-        "Project": project_name_to_id['BU'],
+        "Project": project_name_to_id[PROJECT_NAME],
         "Iteration": iteration_id,
         "Created": datetime.datetime.now().isoformat(),
         "Predictions": predictions}
@@ -115,9 +128,13 @@ def post_prediction_img_url():
 predict_image_endpoint = "/" + SERVICE_NAME + \
                              "/" + API_VERSION + \
                              "/" + END_POINT_NAME + \
-                             "/" + project_name_to_id['BU'] + \
+                             "/" + project_name_to_id[PROJECT_NAME] + \
                              "/image"
-print("PredictImage API = ", predict_image_endpoint)
+if USING_HTTPS:
+    full_predict_image_endpoint = 'https://' + IPAddr + predict_image_endpoint
+else:
+    full_predict_image_endpoint = 'http://' + IPAddr + ":" + str(PORT_NUMBER) + predict_image_endpoint
+print("Full PredictImage API = ", full_predict_image_endpoint)
 
 
 @app.route(predict_image_endpoint, methods=['POST'])
@@ -161,10 +178,33 @@ def post_prediction_image():
 
     return jsonify(res_prediction_img_url)
 
+@app.route('/', methods=['GET','POST'])
+def get_root():
+    print("==== root ====")
+    msg = "<h1>Welcome to TNC wildlife RESTful API</h1>"
+    msg = msg + "<p>Service started from: " + service_start_time + "</p>"
+    msg = msg + "<p>PredictImageUrl POST to: " + full_predict_image_url_endpoint + "</p>"
+    msg = msg + "<p>PredictImage POST to: " + full_predict_image_endpoint + "</p>"
+    msg = msg + "<p>Please report issue to shpeng@microsoft.com</p>"
+    return msg
+
 
 @app.errorhandler(404)
 def page_not_found(e):
     return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
 
-app.run(ssl_context='adhoc')
+if __name__ == '__main__':
+    HOST = os.environ.get('SERVER_HOST', 'localhost')
+    try:
+        PORT = int(os.environ.get('SERVER_PORT', '5555'))
+    except ValueError:
+        PORT = 5555
+    app.run(HOST, PORT, ssl_context='adhoc')
+
+'''
+    if USING_HTTPS:
+        app.run(host=HOST_NAME,port=PORT_NUMBER, ssl_context='adhoc')
+    else:
+        app.run(host=HOST_NAME, port=PORT_NUMBER)
+'''
