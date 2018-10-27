@@ -56,10 +56,14 @@ class FRCNN_Model:
                                                                               len(fg_boxes[0])))
         fg = fg_boxes[0]
         predictions = []
-        for i in fg:
-            print("{:<12} (label: {:<2}), score: {:.3f}, box: {}".format(
-                self.cfg["DATA"].CLASSES[labels[i]], labels[i], scores[i], [int(v) for v in bboxes[i]]))
-            predictions.append({"TagId": np.asscalar(labels[i]),
-                                "Tag": self.cfg["DATA"].CLASSES[labels[i]],
-                                "Probability": np.asscalar(scores[i])})
+        if len(fg) == 0:
+            print("Nothing found in current image.")
+            predictions.append({"TagId": 0, "Tag": 'Empty', "Probability": 1.0})
+        else:
+            for i in fg:
+                print("{:<12} (label: {:<2}), score: {:.3f}, box: {}".format(
+                    self.cfg["DATA"].CLASSES[labels[i]], labels[i], scores[i], [int(v) for v in bboxes[i]]))
+                predictions.append({"TagId": np.asscalar(labels[i]),
+                                    "Tag": self.cfg["DATA"].CLASSES[labels[i]],
+                                    "Probability": np.asscalar(scores[i])})
         return predictions
