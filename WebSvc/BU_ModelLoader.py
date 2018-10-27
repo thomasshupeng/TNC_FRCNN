@@ -12,10 +12,12 @@ import numpy as np
 import utils.od_utils as od
 from FasterRCNN.FasterRCNN_train import prepare
 from cntk import load_model
+import cntk.device
 
 _image_height = 512
 _image_width = 682
 
+cntk.device.try_set_default_device(cntk.device.cpu())
 
 class FRCNN_Model:
     def __init__(self, model_type):
@@ -65,5 +67,6 @@ class FRCNN_Model:
                     self.cfg["DATA"].CLASSES[labels[i]], labels[i], scores[i], [int(v) for v in bboxes[i]]))
                 predictions.append({"TagId": np.asscalar(labels[i]),
                                     "Tag": self.cfg["DATA"].CLASSES[labels[i]],
-                                    "Probability": np.asscalar(scores[i])})
+                                    "Probability": np.asscalar(scores[i]),
+                                    "BBox": [int(v) for v in bboxes[i]]})
         return predictions
