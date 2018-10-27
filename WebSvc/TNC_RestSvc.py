@@ -87,7 +87,7 @@ def post_prediction_img_url():
     filename = img_url[img_url.rfind('/')+1:]
     img_path_file = os.path.join(temp_folder, filename)
 
-    r = requests.get(img_url, allow_redirects=True, verify=False, auth=('user', 'pass'))
+    r = requests.get(img_url, allow_redirects=True, verify=False)
     if r.status_code == requests.codes.ok:
         with open(img_path_file, 'wb') as f:
             f.write(r.content)
