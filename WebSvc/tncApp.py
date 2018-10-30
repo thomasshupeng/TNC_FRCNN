@@ -26,14 +26,13 @@ PROJECT_NAME = 'BU'
 # This is a trick to get IP address for current server/machine
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
-IPAddr= s.getsockname()[0]
+IPAddr = s.getsockname()[0]
 s.close()
 
 HOST_NAME = IPAddr
 PORT_NUMBER = 8080
 if USING_HTTPS:
     PORT_NUMBER = 443
-
 
 project_name_to_id = {'TNC': '11111111',
                       'BU': '22222222',
@@ -58,7 +57,6 @@ model.load()
 
 app = Flask(__name__)
 app.config["DEBUG"] = DEBUG_MODE
-
 
 # 1.	PredictImageUrl
 # https://southcentralus.api.cognitive.microsoft.com/customvision/v1.1/Prediction/{projectId}/url[?iterationId][&application]
@@ -96,10 +94,11 @@ def post_prediction_img_url():
     img_url = request.json
     print("Url = {!s}".format(img_url))
 
-    # Download image file from given Url, if failed to downloading the image simply return error code    # TODO: check if the file is really an image file before downloading
+    # Download image file from given Url, if failed to downloading the image simply return error code
+    #  TODO: check if the file is really an image file before downloading
     if not os.path.exists(temp_folder):
         os.makedirs(temp_folder)
-    filename = img_url[img_url.rfind('/')+1:]
+    filename = img_url[img_url.rfind('/') + 1:]
     img_path_file = os.path.join(temp_folder, filename)
 
     r = requests.get(img_url, allow_redirects=True, verify=False)
@@ -127,10 +126,10 @@ def post_prediction_img_url():
 # 2.	PredictImage
 # https://southcentralus.api.cognitive.microsoft.com/customvision/v1.1/Prediction/{projectId}/image[?iterationId][&application]
 predict_image_endpoint = "/" + SERVICE_NAME + \
-                             "/" + API_VERSION + \
-                             "/" + END_POINT_NAME + \
-                             "/" + project_name_to_id[PROJECT_NAME] + \
-                             "/image"
+                         "/" + API_VERSION + \
+                         "/" + END_POINT_NAME + \
+                         "/" + project_name_to_id[PROJECT_NAME] + \
+                         "/image"
 if USING_HTTPS:
     full_predict_image_endpoint = 'https://' + IPAddr + predict_image_endpoint
 else:
@@ -179,7 +178,8 @@ def post_prediction_image():
 
     return jsonify(res_prediction_img_url)
 
-@app.route('/', methods=['GET','POST'])
+
+@app.route('/', methods=['GET', 'POST'])
 def get_root():
     print("==== root ====")
     msg = "<h1>Welcome to TNC wildlife RESTful API</h1>"
@@ -201,7 +201,8 @@ if __name__ == '__main__':
         PORT = int(os.environ.get('SERVER_PORT', '5555'))
     except ValueError:
         PORT = 5555
-    app.run(HOST, PORT)
+    #app.run(HOST, PORT)
+    app.run(host="0.0.0.0", port=PORT)
 
 '''
     if USING_HTTPS:

@@ -18,6 +18,7 @@ _image_height = 512
 _image_width = 682
 
 cntk.device.try_set_default_device(cntk.device.cpu())
+print(cntk.__version__)
 
 
 class FRCNN_Model:

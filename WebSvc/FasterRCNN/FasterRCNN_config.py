@@ -59,7 +59,7 @@ __C.SIGMA_RPN_L1 = 3.0
 __C.SIGMA_DET_L1 = 1.0
 
 # NMS threshold used to discard overlapping predicted bounding boxes
-__C.RESULTS_NMS_THRESHOLD = 0.5
+__C.RESULTS_NMS_THRESHOLD = 0.7
 # all bounding boxes with a score lower than this threshold will be considered background
 __C.RESULTS_NMS_CONF_THRESHOLD = 0.0
 
@@ -145,8 +145,8 @@ __C.TEST.RPN_MIN_SIZE = 16
 __C.RND_SEED = 3
 
 # Use GPU implementation of non-maximum suppression
-__C.USE_GPU_NMS = False
-#__C.USE_GPU_NMS = True
+#__C.USE_GPU_NMS = False
+__C.USE_GPU_NMS = True
 
 # Default GPU device id
 __C.GPU_ID = 0
