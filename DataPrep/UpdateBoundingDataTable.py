@@ -58,6 +58,23 @@ def update_bounding_data(path):
                     cursor.execute(sql_delete)
                     cursor.execute(sql_insert)
                     cnxn.commit()
+                else:
+                    # Don't have bounding data for this image, it's possible that this is an empty picture
+                    # update bounding data with 0s ONLY if bounding data exists.
+                    sql_delete = "DELETE FROM[dbo].[BoundingData] WHERE [PictureName]='{}'\n".format(base_name)
+                    sql_insert = "INSERT INTO [dbo].[BoundingData] ([PictureName], [TopX], [TopY], [BottomX], [BottomY]," \
+                                 "[Width],[Height]) VALUES ('{picture_name!s}',{topx:d},{topy:d},{botx:d},{boty:d}," \
+                                 "{width:d},{height:d})\n".format(picture_name=base_name, topx=0, topy=0,
+                                                                  botx=0, boty=0,
+                                                                  width=int(train_img_width),
+                                                                  height=int(train_img_height))
+                    sql_update = "IF EXISTS (SELECT * FROM [dbo].[BoundingData] " \
+                                 "WHERE [PictureName]='{picture_name!s}')\n" \
+                                 "BEGIN\n{deletion!s}{inserting!s}\nEND".format(picture_name=base_name,
+                                                                                deletion=sql_delete,
+                                                                                inserting=sql_insert)
+                    cursor.execute(sql_update)
+                    cnxn.commit()
 
 
 if __name__ == '__main__':
