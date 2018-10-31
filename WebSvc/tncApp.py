@@ -10,7 +10,6 @@ Shu Peng
 
 from flask import Flask, jsonify, request
 import os
-# os.environ['PATH'] = r'D:\home\python364x64;D:\home\python364x64\Lib\site-packages\cntk;' + os.environ['PATH']    
 import requests
 import datetime
 import shutil
@@ -18,7 +17,7 @@ import tempfile
 import BU_ModelLoader
 import socket
 
-USING_HTTPS = True
+USING_HTTPS = False
 DEBUG_MODE = False
 
 PROJECT_NAME = 'BU'
@@ -29,10 +28,7 @@ s.connect(("8.8.8.8", 80))
 IPAddr = s.getsockname()[0]
 s.close()
 
-HOST_NAME = IPAddr
-PORT_NUMBER = 8080
-if USING_HTTPS:
-    PORT_NUMBER = 443
+HOST_NAME = 'tncimg.azurewebsites.net'
 
 project_name_to_id = {'TNC': '11111111',
                       'BU': '22222222',
@@ -43,7 +39,41 @@ API_VERSION = 'v1.0'
 END_POINT_NAME = 'Prediction'
 MODEL_NAME = '14CFRCNNAlexNet'
 
+app = Flask(__name__)
+app.config["DEBUG"] = DEBUG_MODE
+
+predict_image_url_endpoint = ''
+full_predict_image_url_endpoint = ''
+predict_image_endpoint = ''
+full_predict_image_endpoint = ''
 service_start_time = datetime.datetime.now().isoformat()
+
+# https://southcentralus.api.cognitive.microsoft.com/customvision/v1.1/Prediction/{projectId}/url[?iterationId][&application]
+predict_image_url_endpoint = "/" + SERVICE_NAME + \
+                             "/" + API_VERSION + \
+                             "/" + END_POINT_NAME + \
+                             "/" + project_name_to_id[PROJECT_NAME] + \
+                             "/url"
+# https://southcentralus.api.cognitive.microsoft.com/customvision/v1.1/Prediction/{projectId}/image[?iterationId][&application]
+predict_image_endpoint = "/" + SERVICE_NAME + \
+                         "/" + API_VERSION + \
+                         "/" + END_POINT_NAME + \
+                         "/" + project_name_to_id[PROJECT_NAME] + \
+                         "/image"
+
+PORT_NUMBER = 8080
+if USING_HTTPS:
+    PORT_NUMBER = 443
+
+if USING_HTTPS:
+    full_predict_image_url_endpoint = 'https://' + HOST_NAME + predict_image_url_endpoint
+    full_predict_image_endpoint = 'https://' + HOST_NAME + predict_image_endpoint
+else:
+    full_predict_image_url_endpoint = 'http://' + HOST_NAME + ":" + str(PORT_NUMBER) + predict_image_url_endpoint
+    full_predict_image_endpoint = 'http://' + HOST_NAME + ":" + str(PORT_NUMBER) + predict_image_endpoint
+
+print("Full PredictImageUrl API = ", full_predict_image_url_endpoint)
+print("Full PredictImage API = ", full_predict_image_endpoint)
 
 # Clean up temp image folder
 temp_folder = os.path.realpath(os.path.join(os.getcwd(), 'temp'))
@@ -52,27 +82,12 @@ if os.path.exists(temp_folder):
     shutil.rmtree(temp_folder)
     os.makedirs(temp_folder)
 
+model = None
 model = BU_ModelLoader.FRCNN_Model(MODEL_NAME)
 model.load()
 
-app = Flask(__name__)
-app.config["DEBUG"] = DEBUG_MODE
 
 # 1.	PredictImageUrl
-# https://southcentralus.api.cognitive.microsoft.com/customvision/v1.1/Prediction/{projectId}/url[?iterationId][&application]
-predict_image_url_endpoint = "/" + SERVICE_NAME + \
-                             "/" + API_VERSION + \
-                             "/" + END_POINT_NAME + \
-                             "/" + project_name_to_id[PROJECT_NAME] + \
-                             "/url"
-
-if USING_HTTPS:
-    full_predict_image_url_endpoint = 'https://' + IPAddr + predict_image_url_endpoint
-else:
-    full_predict_image_url_endpoint = 'http://' + IPAddr + ":" + str(PORT_NUMBER) + predict_image_url_endpoint
-print("Full PredictImageUrl API = ", full_predict_image_url_endpoint)
-
-
 @app.route(predict_image_url_endpoint, methods=['POST'])
 def post_prediction_img_url():
     # Print received request for debugging purpose
@@ -124,19 +139,6 @@ def post_prediction_img_url():
 
 
 # 2.	PredictImage
-# https://southcentralus.api.cognitive.microsoft.com/customvision/v1.1/Prediction/{projectId}/image[?iterationId][&application]
-predict_image_endpoint = "/" + SERVICE_NAME + \
-                         "/" + API_VERSION + \
-                         "/" + END_POINT_NAME + \
-                         "/" + project_name_to_id[PROJECT_NAME] + \
-                         "/image"
-if USING_HTTPS:
-    full_predict_image_endpoint = 'https://' + IPAddr + predict_image_endpoint
-else:
-    full_predict_image_endpoint = 'http://' + IPAddr + ":" + str(PORT_NUMBER) + predict_image_endpoint
-print("Full PredictImage API = ", full_predict_image_endpoint)
-
-
 @app.route(predict_image_endpoint, methods=['POST'])
 def post_prediction_image():
     # Print received request for debugging purpose
@@ -179,13 +181,20 @@ def post_prediction_image():
     return jsonify(res_prediction_img_url)
 
 
+# 3. root
 @app.route('/', methods=['GET', 'POST'])
 def get_root():
     print("==== root ====")
     msg = "<h1>Welcome to TNC wildlife RESTful API</h1>"
+    msg = msg + "<p></p>"
     msg = msg + "<p>Service started from: " + service_start_time + "</p>"
-    msg = msg + "<p>PredictImageUrl POST to: " + full_predict_image_url_endpoint + "</p>"
-    msg = msg + "<p>PredictImage POST to: " + full_predict_image_endpoint + "</p>"
+    msg = msg + "<p> </p>"
+    msg = msg + "<p>Host IP address is : " + IPAddr + "</p>"
+    msg = msg + "<p>PredictImageUrl</p>"
+    msg = msg + "<p>POST to: " + full_predict_image_url_endpoint + "</p>"
+    msg = msg + "<p>PredictImage</p>"
+    msg = msg + "<p>POST to: " + full_predict_image_endpoint + "</p>"
+    msg = msg + "<p> </p>"
     msg = msg + "<p>Please report issue to shpeng@microsoft.com</p>"
     return msg
 
@@ -196,17 +205,11 @@ def page_not_found(e):
 
 
 if __name__ == '__main__':
-    HOST = os.environ.get('SERVER_HOST', 'localhost')
-    try:
-        PORT = int(os.environ.get('SERVER_PORT', '5555'))
-    except ValueError:
-        PORT = 5555
-    #app.run(HOST, PORT)
-    app.run(host="0.0.0.0", port=PORT)
+    HOST = os.environ.get('SERVER_HOST', '0.0.0.0')
 
-'''
+    PORT_NUMBER = int(os.environ.get('SERVER_PORT', PORT_NUMBER))
+
     if USING_HTTPS:
-        app.run(host=HOST_NAME,port=PORT_NUMBER, ssl_context='adhoc')
+        app.run(host=HOST, port=PORT_NUMBER, ssl_context='adhoc')
     else:
-        app.run(host=HOST_NAME, port=PORT_NUMBER)
-'''
+        app.run(host=HOST, port=PORT_NUMBER)

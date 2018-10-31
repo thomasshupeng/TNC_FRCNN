@@ -13,6 +13,7 @@ from utils.plot_helpers import load_resize_and_pad
 from utils.rpn.bbox_transform import regress_rois
 from utils.od_mb_source import ObjectDetectionMinibatchSource
 
+
 class FasterRCNN_Evaluator:
     def __init__(self, eval_model, cfg):
         # load model once in constructor and push images through the model in 'process_image()'
@@ -44,6 +45,7 @@ class FasterRCNN_Evaluator:
         out_bbox_regr = output[out_dict['bbox_regr']][0]
 
         return out_cls_pred, out_rpn_rois, out_bbox_regr, dims
+
 
 def compute_test_set_aps(eval_model, cfg):
     num_test_images = cfg["DATA"].NUM_TEST_IMAGES

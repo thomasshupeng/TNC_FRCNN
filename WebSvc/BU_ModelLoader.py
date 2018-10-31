@@ -1,5 +1,4 @@
 import os
-
 # load configs for detector, base network and data set
 from FasterRCNN.FasterRCNN_config import cfg as detector_cfg
 # AlexNet base model
@@ -23,10 +22,7 @@ print(cntk.__version__)
 
 class FRCNN_Model:
     def __init__(self, model_type):
-        # super().__init__()
-
         self.cfg = merge_configs([detector_cfg, network_cfg, dataset_cfg, {'DETECTOR': 'FasterRCNN'}])
-
         self._base_model_name = "faster_rcnn_eval_AlexNet_e2e_native.model"
         self.name = "BU_" + self._base_model_name
         self.model_path = os.path.join(os.path.join(os.path.dirname(__file__), 'models'), model_type)
@@ -35,12 +31,15 @@ class FRCNN_Model:
         self.cfg['DATA'].MAP_FILE_PATH = self.model_path
         print("Class map file path {}".format(self.cfg['DATA'].MAP_FILE_PATH))
         self.eval_model = None
+        self.evaluator = None
         return
 
     def load(self):
         prepare(self.cfg, use_arg_parser=False)
         print("Loading existing model from %s" % self.model_file)
         self.eval_model = load_model(self.model_file)
+        from FasterRCNN.FasterRCNN_eval import FasterRCNN_Evaluator
+        self.evaluator = FasterRCNN_Evaluator(self.eval_model, self.cfg)
         return
 
     def predict(self, image_path):
@@ -49,9 +48,7 @@ class FRCNN_Model:
 
     # Evaluates a single image using the provided model
     def _eval_single_image(self, img_path):
-        from FasterRCNN.FasterRCNN_eval import FasterRCNN_Evaluator
-        evaluator = FasterRCNN_Evaluator(self.eval_model, self.cfg)
-        regressed_rois, cls_probs = evaluator.process_image(img_path)
+        regressed_rois, cls_probs = self.evaluator.process_image(img_path)
         bboxes, labels, scores = od.filter_results(regressed_rois, cls_probs, self.cfg)
 
         # write detection results to output
