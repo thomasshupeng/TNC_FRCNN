@@ -17,8 +17,6 @@ _image_height = 512
 _image_width = 682
 
 cntk.device.try_set_default_device(cntk.device.cpu())
-print(cntk.__version__)
-
 
 class FRCNN_Model:
     def __init__(self, model_type):
@@ -34,6 +32,15 @@ class FRCNN_Model:
         self.evaluator = None
         return
 
+    def get_cntk_version(self):
+        return cntk.__version__
+
+    def get_model_file(self):
+        return self.model_file
+
+    def get_class_map_file(self):
+        return os.path.join(self.model_path, self.cfg['DATA'].CLASS_MAP_FILE)
+
     def load(self):
         prepare(self.cfg, use_arg_parser=False)
         print("Loading existing model from %s" % self.model_file)
@@ -42,13 +49,13 @@ class FRCNN_Model:
         self.evaluator = FasterRCNN_Evaluator(self.eval_model, self.cfg)
         return
 
-    def predict(self, image_path):
-        predictions = self._eval_single_image(image_path)
+    def predict(self, image_buf):
+        predictions = self._eval_single_image(image_buf)
         return predictions
 
     # Evaluates a single image using the provided model
-    def _eval_single_image(self, img_path):
-        regressed_rois, cls_probs = self.evaluator.process_image(img_path)
+    def _eval_single_image(self, img_buf):
+        regressed_rois, cls_probs = self.evaluator.process_image_mem(img_buf)
         bboxes, labels, scores = od.filter_results(regressed_rois, cls_probs, self.cfg)
 
         # write detection results to output
