@@ -115,3 +115,6 @@ if __name__ == '__main__':
         tf.close()
         rf.flush()
         rf.close()
+    print("{:d} classes.".format(len(class_id_map)))
+    print("{:d} training images.".format(len(train_img_list)))
+    print("{:d} testing images.".format(len(test_img_list)))
