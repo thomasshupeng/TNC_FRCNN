@@ -19,6 +19,7 @@ COPY ./utils/*.py /code/utils/
 RUN apt-get update && apt-get install -y gcc mono-mcs && \
     rm -rf /var/lib/apt/lists/*
 
+# .cv2 import * needs libsm6 libxext6 libxrender1
 RUN apt-get update && apt-get install -y --no-install-recommends \
         apt-utils \
         openmpi-bin \
