@@ -5,7 +5,6 @@ WORKDIR /code
 COPY ./requirements.txt /code
 COPY ./run_waitress_server.py /code
 COPY ./tncApp.py /code
-COPY ./hello.py /code
 COPY ./BU_ModelLoader.py /code
 COPY ./FasterRCNN/. /code/FasterRCNN/
 COPY ./models/. /code/models/
