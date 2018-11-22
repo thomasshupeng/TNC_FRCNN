@@ -1,6 +1,6 @@
 """
 File Name: tncApp.py
-v 1.0
+v 1.1
 
 This program provides the RESTful API for TNC project
 
@@ -13,7 +13,6 @@ import os
 import sys
 import requests
 import datetime
-import shutil
 import BU_ModelLoader
 import socket
 
@@ -44,7 +43,7 @@ app.config["DEBUG"] = DEBUG_MODE
 
 full_predict_image_url_endpoint = ''
 full_predict_image_endpoint = ''
-service_start_time = datetime.datetime.now().isoformat()
+service_start_time = datetime.datetime.now()
 model_load_time = service_start_time
 
 # https://southcentralus.api.cognitive.microsoft.com/customvision/v1.1/Prediction/{projectId}/url[?iterationId][&application]
@@ -98,6 +97,8 @@ def post_prediction_img_url():
     print("=== Headers ===")
     content_type = request.headers.get('Content-Type')
     print("Content-Type = {!s}".format(content_type))
+    language = request.headers.get('Language')
+    print("Language = {!s}".format(content_type))
 
     # TODO: we can use Prediction-Key as model chooser
     prediction_key = request.headers.get('Prediction-Key')
@@ -110,7 +111,7 @@ def post_prediction_img_url():
     #  TODO: check if the file is really an image file before downloading
     r = requests.get(img_url, allow_redirects=True, verify=False)
     if r.status_code == requests.codes.ok:
-        predictions = model.predict(r.content)
+        predictions = model.predict(r.content, lang=language)
         res_prediction_img_url = {
             "Id": "string",
             "Project": project_name_to_id[PROJECT_NAME],
@@ -137,11 +138,13 @@ def post_prediction_image():
     print("Content-Type = {!s}".format(content_type))
     content_length = request.headers.get('Content-Length')
     print("Content-Length = {!s}".format(content_length))
+    language = request.headers.get('Language')
+    print("Language = {!s}".format(content_type))
 
     # TODO: we can use Prediction-Key as model chooser
     prediction_key = request.headers.get('Prediction-Key')
     print("Prediction-Key = {!s}".format(prediction_key))
-    predictions = model.predict(request.get_data())
+    predictions = model.predict(request.get_data(), lang=language)
     res_prediction_img_url = {
         "Id": "string",
         "Project": project_name_to_id['TNC'],
@@ -154,11 +157,17 @@ def post_prediction_image():
 # 3. root
 @app.route('/', methods=['GET', 'POST'])
 def get_root():
+    current_time = datetime.datetime.now()
     print("==== root ====")
     msg = "<h1>Welcome to TNC wildlife RESTful API</h1>"
-    msg = msg + "<p>version 1.22 F-RCNN</p>"
-    msg = msg + "<p>Service started from: " + service_start_time + "</p>"
-    msg = msg + "<p>Model loaded time: " + model_load_time + "</p>"
+    msg = msg + "<p>version 1.30 F-RCNN</p>"
+    msg = msg + "<p>Service started from {:d}/{:d}/{:d}</p>".format(service_start_time.month, service_start_time.day,
+                                                                    service_start_time.year)
+    msg = msg + "<p>Service has been running for {:d} days.</p>".format((current_time - service_start_time).days)
+    msg = msg + "<p>Recent model update time: {:d}/{:d}/{:d}</p>".format(model_load_time.month, model_load_time.day,
+                                                                         model_load_time.year)
+    msg = msg + "<p>Model in use for {:d} days</p>".format((current_time - model_load_time).days)
+    msg = msg + "<p>-----------------------------------------</p>"
     msg = msg + "<p>Python " + sys.version + "</p>"
     msg = msg + "<p>CNTK " + model.get_cntk_version() + "</p>"
     msg = msg + "<p>Flask " + fv + "</p>"
@@ -193,12 +202,13 @@ def get_model():
     print("Model-Name = {!s}".format(model_name))
     class_map_name = request.headers.get('Class-Map')
     print("Class-Map = {!s}".format(class_map_name))
+    en_zh_map_name = request.headers.get('En-Zh-Map')
+    print("En-Zh-Map = {!s}".format(en_zh_map_name))
 
     if model_url[-1] != '/':
         model_url += '/'
 
-
-    class_map_file_url = model_url+class_map_name
+    class_map_file_url = model_url + class_map_name
     r = requests.get(class_map_file_url, allow_redirects=True, verify=False)
     if r.status_code == requests.codes.ok:
         with open(model.get_class_map_file(), 'wb') as cf:
@@ -214,11 +224,18 @@ def get_model():
     else:
         return jsonify({"Error": r.reason, "Url": class_map_file_url, "Code": r.status_code})
 
+    en_zh_map_file_url = model_url + en_zh_map_name
+    r = requests.get(en_zh_map_file_url, allow_redirects=True, verify=False)
+    if r.status_code == requests.codes.ok:
+        with open(model.get_en_zh_map_file(), 'wb', encoding='utf-8') as ef:
+            ef.write(r.content)
+    else:
+        return jsonify({"Error": r.reason, "Url": class_map_file_url, "Code": r.status_code})
+
     model.load()
-    model_load_time = datetime.datetime.now().isoformat()
+    model_load_time = datetime.datetime.now()
 
     return jsonify({"Updated": model_name})
-
 
 
 @app.errorhandler(404)

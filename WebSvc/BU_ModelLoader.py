@@ -18,6 +18,7 @@ _image_width = 682
 
 cntk.device.try_set_default_device(cntk.device.cpu())
 
+
 class FRCNN_Model:
     def __init__(self, model_type):
         self.cfg = merge_configs([detector_cfg, network_cfg, dataset_cfg, {'DETECTOR': 'FasterRCNN'}])
@@ -28,6 +29,8 @@ class FRCNN_Model:
         print("Model file:{}".format(self.model_file))
         self.cfg['DATA'].MAP_FILE_PATH = self.model_path
         print("Class map file path {}".format(self.cfg['DATA'].MAP_FILE_PATH))
+        self.en_zh_file = os.path.join(self.model_path, 'en_zh.txt')
+        self.en_zh_dict = {}
         self.eval_model = None
         self.evaluator = None
         return
@@ -41,16 +44,33 @@ class FRCNN_Model:
     def get_class_map_file(self):
         return os.path.join(self.model_path, self.cfg['DATA'].CLASS_MAP_FILE)
 
+    def get_en_zh_map_file(self):
+        return self.en_zh_file
+
     def load(self):
         prepare(self.cfg, use_arg_parser=False)
         print("Loading existing model from %s" % self.model_file)
         self.eval_model = load_model(self.model_file)
         from FasterRCNN.FasterRCNN_eval import FasterRCNN_Evaluator
         self.evaluator = FasterRCNN_Evaluator(self.eval_model, self.cfg)
+
+        # Loading en_zh dictionary
+        if os.path.exists(self.en_zh_file):
+            with open(self.en_zh_file, 'r', encoding='utf-8', ) as f:
+                for line in f.readlines():
+                    en_name, zh_name = line.split(',', 2)
+                    self.en_zh_dict[en_name.lower()] = zh_name.replace('\n', '')
         return
 
-    def predict(self, image_buf):
+    def predict(self, image_buf, lang='en'):
         predictions = self._eval_single_image(image_buf)
+
+        # Translated to zh
+        if lang == 'zh':
+            for p in predictions:
+                tag = p['Tag'].lower()
+                if tag in self.en_zh_dict:
+                    p['Tag'] = self.en_zh_dict[tag]
         return predictions
 
     # Evaluates a single image using the provided model
