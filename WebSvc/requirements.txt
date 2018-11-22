@@ -46,7 +46,7 @@ PySocks==1.6.8
 python-dateutil==2.7.3
 pytz==2018.5
 PyYAML==3.13
-requests==2.19.1
+requests==2.20.1
 scipy==1.1.0
 simplegeneric==0.8.1
 six==1.11.0
@@ -57,6 +57,4 @@ urllib3==1.23
 waitress==1.1.0
 wcwidth==0.1.7
 Werkzeug==0.14.1
-win-inet-pton==1.0.1
-win-unicode-console==0.5
-wincertstore==0.2
+
