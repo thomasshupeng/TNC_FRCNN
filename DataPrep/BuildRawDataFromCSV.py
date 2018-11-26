@@ -26,7 +26,7 @@ import pandas as pd
 import shutil
 import sys
 
-src_path = 'E:\\TNC_RawData\\BeijingUniversity'
+src_path = 'E:\\BeijingUniversity'
 destination_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..\\DataSets\\Raw")
 
 # Size of the training images
@@ -68,12 +68,17 @@ if __name__ == '__main__':
     print("{} species found in csv file.".format(len(unique_species)))
     for species in unique_species:
         class_name = species.replace('\n', '', 10).replace(' ', '_', 10)
-        print("Processing {}...".format(species))
+        print("Processing {!s}...".format(species))
         species_df = df[df['Name'] == species]
         if not os.path.exists(os.path.join(destination_path, class_name)):
             os.makedirs(os.path.join(destination_path, class_name))
         print("Total images: {:d}".format(species_df.shape[0]))
+        skipped_img = 0
         for item, row in species_df.iterrows():
+            # skip the picture that has no roi data.
+            if row['BottomX'] ==0 and row['BottomY'] == 0 and species != 'Empty':
+                skipped_img += 1
+                continue
             l, location, camera, squence = row['FileName'].split('-')
             src_file = os.path.join(src_path, "L-" + location, "L-" + location + "-" + camera, row['FileName'] + '.JPG')
             if create_location_sub_folder:
@@ -103,4 +108,5 @@ if __name__ == '__main__':
                 bot_x, bot_y = transform(row['BottomX'], row['BottomY'], row['Width'], row['Height'])
                 f.write(line.format(top_x=top_x, top_y=top_y, bot_x=bot_x, bot_y=bot_y))
                 f.flush()
+        print("{:d} image(s) were skipped.".format(skipped_img))
     print("Done!")
