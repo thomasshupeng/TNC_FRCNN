@@ -29,8 +29,6 @@ from utils.rpn.rpn_helpers import create_rpn, create_proposal_target_layer, crea
 from utils.annotations.annotations_helper import parse_class_map_file
 from utils.od_mb_source import ObjectDetectionMinibatchSource
 from utils.proposal_helpers import ProposalProvider
-#from FastRCNN.FastRCNN_train import clone_model, clone_conv_layers, create_fast_rcnn_predictor, \
-#    create_detection_losses
 
 def prepare(cfg, use_arg_parser=True):
     cfg.MB_SIZE = 1
