@@ -36,7 +36,7 @@ project_name_to_id = {'TNC': '11111111',
 SERVICE_NAME = 'tncapi'
 API_VERSION = 'v1.0'
 END_POINT_NAME = 'Prediction'
-MODEL_NAME = '14CFRCNNAlexNet'
+MODEL_TYPE = '14CFRCNNAlexNet'
 
 app = Flask(__name__)
 app.config["DEBUG"] = DEBUG_MODE
@@ -79,7 +79,7 @@ else:
 print("Full PredictImageUrl API = ", full_predict_image_url_endpoint)
 print("Full PredictImage API = ", full_predict_image_endpoint)
 
-model = BU_ModelLoader.FRCNN_Model(MODEL_NAME)
+model = BU_ModelLoader.FRCNN_Model(MODEL_TYPE)
 model.load()
 
 
@@ -160,10 +160,11 @@ def get_root():
     current_time = datetime.datetime.now()
     print("==== root ====")
     msg = "<h1>Welcome to TNC wildlife RESTful API</h1>"
-    msg = msg + "<p>version 1.30 F-RCNN</p>"
+    msg = msg + "<p>version 1.31 Faster-RCNN</p>"
     msg = msg + "<p>Service started from {:d}/{:d}/{:d}</p>".format(service_start_time.month, service_start_time.day,
                                                                     service_start_time.year)
     msg = msg + "<p>Service has been running for {:d} days.</p>".format((current_time - service_start_time).days)
+    msg = msg + "<p>Current model type: {!s}</p>".format(model.get_model_type())
     msg = msg + "<p>Recent model update time: {:d}/{:d}/{:d}</p>".format(model_load_time.month, model_load_time.day,
                                                                          model_load_time.year)
     msg = msg + "<p>Model in use for {:d} days</p>".format((current_time - model_load_time).days)
@@ -204,6 +205,12 @@ def get_model():
     print("Class-Map = {!s}".format(class_map_name))
     en_zh_map_name = request.headers.get('En-Zh-Map')
     print("En-Zh-Map = {!s}".format(en_zh_map_name))
+    model_type = request.headers.get('Model-Type')
+    print("Model-Type = {!s}".format(model_type))
+
+    # Save current model type
+    current_model_type  = model.get_model_type()
+    model.set_model_type(model_type)
 
     if model_url[-1] != '/':
         model_url += '/'
@@ -214,6 +221,7 @@ def get_model():
         with open(model.get_class_map_file(), 'wb') as cf:
             cf.write(r.content)
     else:
+        model.set_model_type(current_model_type)
         return jsonify({"Error": r.reason, "Url": class_map_file_url, "Code": r.status_code})
 
     model_file_url = model_url + model_name
@@ -222,15 +230,17 @@ def get_model():
         with open(model.get_model_file(), 'wb') as mf:
             mf.write(r.content)
     else:
-        return jsonify({"Error": r.reason, "Url": class_map_file_url, "Code": r.status_code})
+        model.set_model_type(current_model_type)
+        return jsonify({"Error": r.reason, "Url": model_file_url, "Code": r.status_code})
 
     en_zh_map_file_url = model_url + en_zh_map_name
     r = requests.get(en_zh_map_file_url, allow_redirects=True, verify=False)
     if r.status_code == requests.codes.ok:
-        with open(model.get_en_zh_map_file(), 'wb', encoding='utf-8') as ef:
+        with open(model.get_en_zh_map_file(), 'wb') as ef:
             ef.write(r.content)
     else:
-        return jsonify({"Error": r.reason, "Url": class_map_file_url, "Code": r.status_code})
+        model.set_model_type(current_model_type)
+        return jsonify({"Error": r.reason, "Url": en_zh_map_file_url, "Code": r.status_code})
 
     model.load()
     model_load_time = datetime.datetime.now()
