@@ -1,0 +1,16 @@
+﻿__background__,空
+Asiatic_Black_Bear,亚洲黑熊
+Bird_Others,鸟类
+Blue_Sheep,岩羊
+Boar,野猪
+Chinese_Goral,中华斑羚
+Giant_Panda,大熊猫
+Golden_monkey,川金丝猴
+Hog_Badger,猪獾
+Human,人
+Livestock,家畜
+Mammal_Others,兽类
+Sambar,水鹿
+Snow_Leopard,雪豹
+Takin,羚牛
+Tufted_Deer,毛冠鹿
