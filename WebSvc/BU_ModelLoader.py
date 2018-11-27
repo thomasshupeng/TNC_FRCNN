@@ -22,18 +22,31 @@ cntk.device.try_set_default_device(cntk.device.cpu())
 class FRCNN_Model:
     def __init__(self, model_type):
         self.cfg = merge_configs([detector_cfg, network_cfg, dataset_cfg, {'DETECTOR': 'FasterRCNN'}])
-        self._base_model_name = "faster_rcnn_eval_AlexNet_e2e_native.model"
-        self.name = "BU_" + self._base_model_name
-        self.model_path = os.path.join(os.path.join(os.path.dirname(__file__), 'models'), model_type)
-        self.model_file = os.path.join(self.model_path, self.name)
-        print("Model file:{}".format(self.model_file))
-        self.cfg['DATA'].MAP_FILE_PATH = self.model_path
-        print("Class map file path {}".format(self.cfg['DATA'].MAP_FILE_PATH))
-        self.en_zh_file = os.path.join(self.model_path, 'en_zh.txt')
+        self.name = "TNC_faster_rcnn_eval_AlexNet_e2e_native.model"
+        self.model_type = ''
+        self.model_path = ''
+        self.model_file = ''
+        self.en_zh_file = ''
         self.en_zh_dict = {}
         self.eval_model = None
         self.evaluator = None
+        self.set_model_type(model_type)
         return
+
+    def set_model_type(self, model_type):
+        self.model_type = model_type
+        self.model_path = os.path.join(os.path.join(os.path.dirname(__file__), 'models'), model_type)
+        if not os.path.exists(self.model_path):
+            os.makedirs(self.model_path)
+        self.model_file = os.path.join(self.model_path, self.name)
+        self.cfg['DATA'].MAP_FILE_PATH = self.model_path
+        self.cfg['DATA'].CLASS_MAP_FILE = os.path.join(self.model_path,
+                                                       os.path.basename(self.cfg['DATA'].CLASS_MAP_FILE))
+        self.en_zh_file = os.path.join(self.model_path, 'en_zh.txt')
+        return
+
+    def get_model_type(self):
+        return self.model_type
 
     def get_cntk_version(self):
         return cntk.__version__
@@ -42,7 +55,7 @@ class FRCNN_Model:
         return self.model_file
 
     def get_class_map_file(self):
-        return os.path.join(self.model_path, self.cfg['DATA'].CLASS_MAP_FILE)
+        return self.cfg['DATA'].CLASS_MAP_FILE
 
     def get_en_zh_map_file(self):
         return self.en_zh_file
