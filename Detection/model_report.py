@@ -3,6 +3,10 @@ import sys
 import numpy as np
 import cntk
 from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+import itertools
+import matplotlib.pyplot as plt
+
 from FasterRCNN.FasterRCNN_train import prepare
 from FasterRCNN.FasterRCNN_eval import FasterRCNN_Evaluator
 from utils.config_helpers import merge_configs
@@ -52,6 +56,36 @@ def read_zh_labels(en_zh_file):
                 labels.append(zh_label)
     return labels
 
+def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix',cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    print(cm)
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.tight_layout()
 
 if __name__ == '__main__':
     cfg = get_configuration()
@@ -107,6 +141,28 @@ if __name__ == '__main__':
     print("")
 
     if len(prediction_results) == test_size:
-        classification_report(test_img_classes, prediction_results, classes)
+        if len(zh_lables) > 0:
+            class_label = zh_lables
+        else:
+            class_label = classes
+        # classification report
+        classification_report(test_img_classes, prediction_results, target_names=class_label)
+        # confusion matrix
+        cm =  confusion_matrix(test_img_classes, prediction_results)
+        # Plot non-normalized confusion matrix
+        plt.figure()
+        plot_confusion_matrix(cm, classes=class_label,
+                              title='Confusion matrix, without normalization')
+
+        # Plot normalized confusion matrix
+        plt.figure()
+        plot_confusion_matrix(cm, classes=class_label, normalize=True,
+                              title='Normalized confusion matrix')
+
+        plt.show()
+
     else:
         print("ERROR: number of prediction results is different from the total number of test images.")
+
+
+
