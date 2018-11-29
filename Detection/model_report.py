@@ -102,13 +102,11 @@ if __name__ == '__main__':
         progress_counter += 1
         temp = "{:.2f}% - [{:d}/{:d}] images evaluated. {!s}".format(float((progress_counter / test_size) * 100),
                                                                      progress_counter, test_size, img_path)
-        print(temp)
-        # print(temp, end='r')
-        # sys.stdout.flush()
+        print(temp, end='\r')
+        sys.stdout.flush()
     print("")
 
     if len(prediction_results) == test_size:
         classification_report(test_img_classes, prediction_results, classes)
-
     else:
         print("ERROR: number of prediction results is different from the total number of test images.")
