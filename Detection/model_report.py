@@ -1,8 +1,10 @@
 import os
 import sys
 import numpy as np
+import pandas as pd
+
 import cntk
-from sklearn.metrics import classification_report
+# from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 import itertools
 import matplotlib.pyplot as plt
@@ -47,16 +49,17 @@ def read_test_classes(roi_file):
 
 
 def read_zh_labels(en_zh_file):
-    labels = []
+    zh_labels = []
     if os.path.exists(en_zh_file):
         with open(en_zh_file, 'r', encoding='utf-8') as ef:
             for line in ef.readlines():
                 line = line.replace('\n', '')
                 en_label, zh_label = line.split(',')
-                labels.append(zh_label)
-    return labels
+                zh_labels.append(zh_label)
+    return zh_labels
 
-def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix',cmap=plt.cm.Blues):
+
+def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
     """
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
@@ -87,6 +90,7 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
     plt.xlabel('Predicted label')
     plt.tight_layout()
 
+
 if __name__ == '__main__':
     cfg = get_configuration()
     prepare(cfg, False)
@@ -109,11 +113,11 @@ if __name__ == '__main__':
         exit(-1)
 
     # load target_names
-    zh_lables = read_zh_labels(os.path.join(cfg['DATA'].MAP_FILE_PATH, 'en_zh.txt'))
+    zh_labels = read_zh_labels(os.path.join(cfg['DATA'].MAP_FILE_PATH, 'en_zh.txt'))
     label_dict = {}
-    if len(classes) == len(zh_lables):
+    if len(classes) == len(zh_labels):
         for i in range(len(classes)):
-            label_dict[classes[i]] = zh_lables[i]
+            label_dict[classes[i]] = zh_labels[i]
 
     # loading model
     model = None
@@ -141,28 +145,65 @@ if __name__ == '__main__':
     print("")
 
     if len(prediction_results) == test_size:
-        if len(zh_lables) > 0:
-            class_label = zh_lables
+        if len(zh_labels) > 0:
+            class_labels = zh_labels
         else:
-            class_label = classes
+            class_labels = classes
+
+        '''
+
         # classification report
-        classification_report(test_img_classes, prediction_results, target_names=class_label)
+        # report = classification_report(test_img_classes, prediction_results, labels=list(range(1, len(classes))),
+        #                               target_names=class_labels[1:]).encode('utf-8')
+        # print(report)
+
+        from sklearn.metrics import accuracy_score
+        print("Accuracy score:")
+        accuracy_score(test_img_classes, prediction_results)
+        print("==============================================")
+        print("")
+
+        #print("Balanced accuracy score:")
+        #from sklearn.metrics import balanced_accuracy_score
+        #balanced_accuracy_score(test_img_classes, prediction_results)
+        #print("==============================================")
+        #print("")
+
+        from sklearn.metrics import precision_score, recall_score
+        print("Precision/recall score - Macro")
+        precision_score(test_img_classes, prediction_results, labels=classes, average='macro')
+        recall_score(test_img_classes, prediction_results, labels=classes, average='macro')
+        print("==============================================")
+        print("")
+        print("Precision/recall score - Micro")
+        precision_score(test_img_classes, prediction_results, labels=classes, average='micro')
+        recall_score(test_img_classes, prediction_results, labels=classes, average='micro')
+        print("==============================================")
+        print("")
+        print("Precision/recall score - Weighted")
+        precision_score(test_img_classes, prediction_results, labels=classes, average='weighted')
+        recall_score(test_img_classes, prediction_results, labels=classes, average='weighted')
+        print("==============================================")
+        print("")
+        '''
+
         # confusion matrix
-        cm =  confusion_matrix(test_img_classes, prediction_results)
+        cm = confusion_matrix(test_img_classes, prediction_results)
+        np.set_printoptions(precision=2)
+        df = pd.DataFrame(cm, index=classes, columns=classes)
+        df.to_csv(os.path.join(os.getcwd(), "Confusion_matrix_en.csv"), encoding='utf-8')
+        df = pd.DataFrame(cm, index=class_labels, columns=class_labels)
+        df.to_csv(os.path.join(os.getcwd(), "Confusion_matrix_zh.csv"), encoding='utf-8')
+
         # Plot non-normalized confusion matrix
         plt.figure()
-        plot_confusion_matrix(cm, classes=class_label,
+        plot_confusion_matrix(cm, classes=classes,
                               title='Confusion matrix, without normalization')
-
         # Plot normalized confusion matrix
         plt.figure()
-        plot_confusion_matrix(cm, classes=class_label, normalize=True,
+        plot_confusion_matrix(cm, classes=classes, normalize=True,
                               title='Normalized confusion matrix')
-
         plt.show()
 
     else:
         print("ERROR: number of prediction results is different from the total number of test images.")
-
-
-
