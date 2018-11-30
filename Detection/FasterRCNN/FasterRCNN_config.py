@@ -31,7 +31,7 @@ __C.CNTK.FAST_MODE = False
 __C.CNTK.DEBUG_OUTPUT = False
 __C.CNTK.GRAPH_TYPE = "png" # "png" or "pdf"
 # Set to True if you want to store an eval model with native UDFs (e.g. for inference using C++ or C#)
-__C.STORE_EVAL_MODEL_WITH_NATIVE_UDF = False
+__C.STORE_EVAL_MODEL_WITH_NATIVE_UDF = True
 
 # Learning parameters
 __C.CNTK.L2_REG_WEIGHT = 0.0005
@@ -40,7 +40,7 @@ __C.CNTK.MOMENTUM_PER_MB = 0.9
 __C.CNTK.BIAS_LR_MULT = 2.0
 
 # E2E learning parameters
-__C.CNTK.E2E_MAX_EPOCHS = 20
+__C.CNTK.E2E_MAX_EPOCHS = 50
 __C.CNTK.E2E_LR_PER_SAMPLE = [0.001] * 10 + [0.0001] * 10 + [0.00001]
 
 # 4-stage learning parameters (alternating training scheme)
@@ -50,7 +50,7 @@ __C.CNTK.FRCN_EPOCHS = 8
 __C.CNTK.FRCN_LR_PER_SAMPLE = [0.001] * 6 + [0.0001] * 2
 
 # Maximum number of ground truth annotations per image
-__C.INPUT_ROIS_PER_IMAGE = 10
+__C.INPUT_ROIS_PER_IMAGE = 5
 __C.IMAGE_WIDTH = 682
 __C.IMAGE_HEIGHT = 512
 
@@ -59,7 +59,7 @@ __C.SIGMA_RPN_L1 = 3.0
 __C.SIGMA_DET_L1 = 1.0
 
 # NMS threshold used to discard overlapping predicted bounding boxes
-__C.RESULTS_NMS_THRESHOLD = 0.2
+__C.RESULTS_NMS_THRESHOLD = 0.5
 # all bounding boxes with a score lower than this threshold will be considered background
 __C.RESULTS_NMS_CONF_THRESHOLD = 0.0
 
@@ -69,6 +69,9 @@ __C.DRAW_NEGATIVE_ROIS = False
 __C.DRAW_UNREGRESSED_ROIS = False
 # only for plotting results: boxes with a score lower than this threshold will be considered background
 __C.RESULTS_BGR_PLOT_THRESHOLD = 0.1
+
+# Saving result to Output/DataSet_yymmdd_hhmm/ folder
+__C.RESULTS_SAVE_RESULTS = True
 
 #
 # Training parameters
